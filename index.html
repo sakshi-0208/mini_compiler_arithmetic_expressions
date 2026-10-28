@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mini Compiler Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--panel:#fff;--ink:#14213d;--muted:#5b6b82;--line:#d5dde8;--accent:#0f766e;--on-accent:#fff;--chip:#e3ecf5;--hl:#fde68a;--err:#b91c1c;--errbg:#fee2e2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1726;--panel:#16233a;--ink:#e6edf7;--muted:#93a4bd;--line:#2a3b58;--accent:#2dd4bf;--on-accent:#06251f;--chip:#1e2f4b;--hl:#78560f;--err:#fca5a5;--errbg:#3b1616}}
+:root[data-theme="dark"]{--bg:#0e1726;--panel:#16233a;--ink:#e6edf7;--muted:#93a4bd;--line:#2a3b58;--accent:#2dd4bf;--on-accent:#06251f;--chip:#1e2f4b;--hl:#78560f;--err:#fca5a5;--errbg:#3b1616}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 'IBM Plex Sans',system-ui,sans-serif}
+.mono,code,pre,input,td.m{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 18px 40px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{margin:0;font-size:28px;font-weight:600;letter-spacing:-.02em}
+.sub{margin:4px 0 0;color:var(--muted);max-width:60ch}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 12px}
+button:hover{border-color:var(--accent)}
+button.pri{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:500}
+button:disabled{opacity:.45;cursor:default}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{margin:22px 0 10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input[type=text]{flex:1 1 300px;font-size:22px;padding:12px 14px;border-radius:10px;border:2px solid var(--line);background:var(--panel);color:var(--ink)}
+input[type=text]:focus{border-color:var(--accent);outline:none}
+.ex{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.ex button{font-family:'IBM Plex Mono',monospace;font-size:13px;padding:4px 10px;border-radius:99px;background:var(--chip);border-color:transparent}
+.res{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.res .val{font-size:34px;font-weight:500;font-family:'IBM Plex Mono',monospace;color:var(--accent)}
+.res.bad{background:var(--errbg);border-color:var(--err);color:var(--err);display:block}
+.res.bad pre{margin:6px 0 0;font-size:16px}
+.opt{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.card h2{margin:0 0 4px;font-size:16px;font-weight:600}
+.card p.d{margin:0 0 10px;color:var(--muted);font-size:13.5px}
+.scroll{overflow-x:auto}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--chip);border-radius:8px;padding:4px 9px;font-size:13px;font-family:'IBM Plex Mono',monospace}
+.chip small{display:block;color:var(--muted);font-size:10.5px;line-height:1.2}
+svg text{fill:var(--ink);font:500 13px 'IBM Plex Mono',monospace;text-anchor:middle;dominant-baseline:central}
+.edge{stroke:var(--line);stroke-width:2}
+.nd{fill:var(--chip);stroke:var(--accent);stroke-width:2}
+.lf{fill:var(--panel);stroke:var(--muted);stroke-width:1.5}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td,th{padding:4px 8px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:500;font-size:12.5px}
+tr.on td{background:var(--hl)}
+.vm{display:flex;gap:16px;flex-wrap:wrap}
+.vm>div{flex:1 1 180px;min-width:0}
+.stack{display:flex;flex-direction:column-reverse;gap:4px;min-height:130px;border:2px dashed var(--line);border-radius:8px;padding:6px;justify-content:flex-start}
+.cell{background:var(--accent);color:var(--on-accent);font-family:'IBM Plex Mono',monospace;text-align:center;border-radius:6px;padding:3px}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px}
+.say{min-height:44px;color:var(--muted);font-size:13.5px}
+pre.g{margin:0;font-size:12.5px;line-height:1.6;overflow-x:auto}
+.empty{color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Mini Compiler Lab</h1>
+    <p class="sub">Type an arithmetic expression and watch it travel through a real compiler pipeline: tokens, syntax tree, optimizer, bytecode, virtual machine.</p>
+  </div>
+  <button id="theme" aria-label="Switch colour theme">Theme</button>
+</header>
+
+<div class="bar">
+  <input type="text" id="src" value="2 + 3 * (4 - 1)" spellcheck="false" autocomplete="off" aria-label="Arithmetic expression">
+  <label class="opt"><input type="checkbox" id="fold"> Constant folding</label>
+</div>
+<div class="ex" id="ex"></div>
+<div id="res" class="res"></div>
+
+<div class="grid" id="grid">
+  <section class="card"><h2>Lexer: tokens</h2><p class="d">The text is split into meaningful pieces.</p><div class="chips" id="tok"></div></section>
+  <section class="card"><h2>Parser: syntax tree</h2><p class="d">Precedence is encoded by depth: deeper nodes run first.</p><div class="scroll" id="ast"></div></section>
+  <section class="card" id="foldcard"><h2>Optimizer: after folding</h2><p class="d">Sub-trees made only of numbers are computed at compile time.</p><div class="scroll" id="ast2"></div></section>
+  <section class="card"><h2>Code generator: bytecode</h2><p class="d">A post-order walk of the tree gives stack-machine instructions.</p><div class="scroll"><table><thead><tr><th>#</th><th>Instruction</th><th>Operand</th></tr></thead><tbody id="code"></tbody></table></div></section>
+  <section class="card" style="grid-column:1/-1"><h2>Virtual machine</h2><p class="d">Step through the bytecode and watch the stack change.</p>
+    <div class="vm"><div><div class="ctl"><button id="back">Back</button><button id="step" class="pri">Step</button><button id="play">Play</button><button id="reset">Reset</button></div><div class="say" id="say"></div></div>
+    <div><div class="stack" id="stack" aria-live="polite"></div></div></div></section>
+  <section class="card" style="grid-column:1/-1"><h2>Grammar</h2><p class="d">Each rule is one function in the parser. Lower rules bind tighter.</p>
+<pre class="g">expr  -> term  (('+' | '-') term)*
+term  -> unary (('*' | '/' | '%') unary)*
+unary -> '-' unary | power
+power -> atom ('^' unary)?        right-associative
+atom  -> NUMBER | '(' expr ')'</pre></section>
+</div>
+</div>
+
+<script>
+const SYM={'+':'PLUS','-':'MINUS','*':'STAR','/':'SLASH','%':'PERCENT','^':'CARET','(':'LPAREN',')':'RPAREN'};
+const OPN={'+':'ADD','-':'SUB','*':'MUL','/':'DIV','%':'MOD','^':'POW'};
+class CErr extends Error{constructor(m,p){super(m);this.pos=p}}
+const fmt=v=>String(parseFloat(v.toPrecision(12)));
+
+function lex(s){const t=[];let i=0;
+ while(i<s.length){const c=s[i];
+  if(/\s/.test(c)){i++;continue}
+  if(/[\d.]/.test(c)){const st=i;let d=0;while(i<s.length&&/[\d.]/.test(s[i])){if(s[i]=='.')d++;i++}
+   const x=s.slice(st,i);if(d>1||x=='.')throw new CErr(`Malformed number '${x}'`,st);
+   t.push({k:'NUM',v:parseFloat(x),p:st});continue}
+  if(SYM[c]){t.push({k:SYM[c],v:c,p:i});i++;continue}
+  throw new CErr(`Unexpected character '${c}'`,i)}
+ t.push({k:'EOF',v:'end of input',p:s.length});return t}
+
+function parse(t){let i=0;const cur=()=>t[i];
+ const eat=(...ks)=>{const x=t[i];if(!ks.includes(x.k))throw new CErr(`Expected ${ks.join(' or ')} but found ${x.v}`,x.p);i++;return x};
+ const expr=()=>{let n=term();while(['PLUS','MINUS'].includes(cur().k)){const o=eat('PLUS','MINUS').v;n={t:'bin',op:o,l:n,r:term()}}return n};
+ const term=()=>{let n=unary();while(['STAR','SLASH','PERCENT'].includes(cur().k)){const o=eat('STAR','SLASH','PERCENT').v;n={t:'bin',op:o,l:n,r:unary()}}return n};
+ const unary=()=>{if(cur().k=='MINUS'){eat('MINUS');return{t:'un',x:unary()}}return power()};
+ const power=()=>{const b=atom();if(cur().k=='CARET'){eat('CARET');return{t:'bin',op:'^',l:b,r:unary()}}return b};
+ const atom=()=>{if(cur().k=='NUM')return{t:'num',v:eat('NUM').v};
+  if(cur().k=='LPAREN'){eat('LPAREN');const n=expr();eat('RPAREN');return n}
+  throw new CErr(`Unexpected ${cur().v==='end of input'?'end of input':"'"+cur().v+"'"}`,cur().p)};
+ const n=expr();if(cur().k!='EOF')throw new CErr(`Unexpected '${cur().v}'`,cur().p);return n}
+
+function ap(o,a,b){switch(o){
+ case'+':return a+b;case'-':return a-b;case'*':return a*b;
+ case'/':if(b===0)throw new CErr('Division by zero');return a/b;
+ case'%':if(b===0)throw new CErr('Modulo by zero');return((a%b)+b)%b;
+ case'^':return Math.pow(a,b)}}
+
+function fold(n){
+ if(n.t=='num')return n;
+ if(n.t=='un'){const x=fold(n.x);return x.t=='num'?{t:'num',v:-x.v}:{t:'un',x}}
+ const l=fold(n.l),r=fold(n.r);
+ return l.t=='num'&&r.t=='num'?{t:'num',v:ap(n.op,l.v,r.v)}:{t:'bin',op:n.op,l,r}}
+
+function gen(n,c=[]){
+ if(n.t=='num')c.push({op:'PUSH',arg:n.v});
+ else if(n.t=='un'){gen(n.x,c);c.push({op:'NEG'})}
+ else{gen(n.l,c);gen(n.r,c);c.push({op:OPN[n.op]})}
+ return c}
+
+function exec(code){const sym=Object.fromEntries(Object.entries(OPN).map(([k,v])=>[v,k]));
+ let st=[];const states=[{stack:[],say:'Press Step to run the first instruction.'}];
+ for(const {op,arg} of code){let say;
+  if(op=='PUSH'){st=[...st,arg];say=`PUSH ${fmt(arg)}: put ${fmt(arg)} on top of the stack.`}
+  else if(op=='NEG'){const a=st[st.length-1];st=[...st.slice(0,-1),-a];say=`NEG: flip the sign of ${fmt(a)} to get ${fmt(-a)}.`}
+  else{const b=st[st.length-1],a=st[st.length-2],r=ap(sym[op],a,b);st=[...st.slice(0,-2),r];
+   say=`${op}: pop ${fmt(b)} then ${fmt(a)}, compute ${fmt(a)} ${sym[op]} ${fmt(b)}, push ${fmt(r)}.`}
+  states.push({stack:st,say})}
+ return states}
+
+function tree(n){let x=0;const nodes=[],edges=[];
+ (function go(n,d){let label,kids=[];
+  if(n.t=='num')label=fmt(n.v);else if(n.t=='un'){label='neg';kids=[n.x]}else{label=n.op;kids=[n.l,n.r]}
+  let px;if(!kids.length)px=x++;else{const cs=kids.map(k=>go(k,d+1));px=cs.reduce((a,c)=>a+c,0)/cs.length;cs.forEach(c=>edges.push([px,d,c,d+1]))}
+  nodes.push({x:px,d,label,leaf:!kids.length});return px})(n,0);
+ const sx=60,sy=56,pad=26,D=Math.max(...nodes.map(n=>n.d));
+ const X=v=>pad+v*sx,Y=v=>pad+v*sy,W=X(Math.max(x-1,0))+pad,H=Y(D)+pad;
+ return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Syntax tree">`+
+  edges.map(e=>`<line class="edge" x1="${X(e[0])}" y1="${Y(e[1])}" x2="${X(e[2])}" y2="${Y(e[3])}"/>`).join('')+
+  nodes.map(n=>`<circle class="${n.leaf?'lf':'nd'}" cx="${X(n.x)}" cy="${Y(n.d)}" r="19"/><text x="${X(n.x)}" y="${Y(n.d)}">${n.label}</text>`).join('')+`</svg>`}
+
+const $=id=>document.getElementById(id);
+let states=[],code=[],s=0,timer=null;
+
+function showVM(){
+ $('code').querySelectorAll('tr').forEach((r,i)=>r.classList.toggle('on',i==s-1));
+ $('stack').innerHTML=states[s].stack.map(v=>`<div class="cell">${fmt(v)}</div>`).join('')||'<span class="empty" style="margin:auto;order:2">empty</span>';
+ $('say').textContent=states[s].say;
+ $('back').disabled=s==0;$('step').disabled=s==states.length-1;
+ $('play').textContent=timer?'Pause':'Play';
+ if(s==states.length-1)stop()}
+function stop(){clearInterval(timer);timer=null;$('play').textContent='Play'}
+
+function compile(){
+ stop();const src=$('src').value,res=$('res'),grid=$('grid');
+ if(!src.trim()){res.className='res';res.innerHTML='<span class="empty">Type an expression to compile it.</span>';grid.hidden=true;return}
+ try{
+  const toks=lex(src),ast=parse(toks),opt=fold(ast),useFold=$('fold').checked;
+  code=gen(useFold?opt:ast);states=exec(code);s=0;
+  res.className='res';res.innerHTML=`<span class="empty">Result</span><span class="val">${fmt(states[states.length-1].stack[0])}</span>`;
+  grid.hidden=false;
+  $('tok').innerHTML=toks.slice(0,-1).map(t=>`<div class="chip"><small>${t.k}</small>${t.v}</div>`).join('');
+  $('ast').innerHTML=tree(ast);$('ast2').innerHTML=tree(opt);
+  $('foldcard').style.opacity=useFold?1:.6;
+  $('code').innerHTML=code.map((c,i)=>`<tr><td class="m">${i}</td><td class="m">${c.op}</td><td class="m">${c.arg===undefined?'':fmt(c.arg)}</td></tr>`).join('');
+  showVM();
+ }catch(e){
+  if(!(e instanceof CErr))throw e;
+  res.className='res bad';grid.hidden=true;
+  res.innerHTML=`<strong>${e.message}</strong>`+(e.pos!=null?`<pre>${src.replace(/&/g,'&amp;').replace(/</g,'&lt;')}\n${' '.repeat(e.pos)}^</pre>`:'');
+ }}
+
+$('src').addEventListener('input',compile);
+$('fold').addEventListener('change',compile);
+$('step').onclick=()=>{if(s<states.length-1){s++;showVM()}};
+$('back').onclick=()=>{stop();if(s>0){s--;showVM()}};
+$('reset').onclick=()=>{stop();s=0;showVM()};
+$('play').onclick=()=>{if(timer){stop();return}if(s>=states.length-1)s=0;showVM();
+ timer=setInterval(()=>{s++;showVM()},700);$('play').textContent='Pause'};
+$('ex').innerHTML=['2 + 3 * 4','(2 + 3) * 4','10 - 4 - 3','2 ^ 3 ^ 2','-2 ^ 2','((1+2)*(3+4))/7','7 % 3 + 2.5'].map(e=>`<button>${e}</button>`).join('');
+$('ex').onclick=e=>{if(e.target.tagName=='BUTTON'){$('src').value=e.target.textContent;compile()}};
+$('theme').onclick=()=>{const r=document.documentElement,d=r.dataset.theme?r.dataset.theme=='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=d?'light':'dark'};
+compile();
+</script>
+</body>
+</html>

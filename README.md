@@ -110,7 +110,7 @@ mini-compiler/
 └── .gitignore
 ```
 
-## How it works (short version)
+## How it works
 
 1. **Lexing.** A single left-to-right scan groups characters into tokens. Numbers use "maximal munch": keep consuming digits and dots.
 2. **Parsing.** Recursive descent with one token of lookahead (LL(1)). Loops in `expr` and `term` give left associativity. Recursing on the right side in `power` gives right associativity.

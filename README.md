@@ -133,7 +133,3 @@ mini-compiler/
 - Source positions stored in every AST node
 - Saving and loading compiled bytecode
 - Emitting real assembly or LLVM IR
-
-## License
-
-MIT. See [LICENSE](LICENSE).
